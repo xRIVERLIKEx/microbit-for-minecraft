@@ -244,22 +244,18 @@ namespace microbit {
         player.execute("scoreboard objectives add mb dummy")
         player.execute("tickingarea add 0 250 0 15 253 15 mblink5")
         note("ready")
-        // The bridge also puts a gold block at (15, 250, 0) whenever anything happens, so each round
-        // needs one check however many "on ..." blocks there are. A full check every 10th round
-        // keeps it working with older bridges that don't set it.
-        let rounds = 0
+        // The bridge puts a gold block at (15, 250, 0) whenever anything happens, so each round needs
+        // one check however many "on ..." blocks there are. Code Builder runs one command at a time,
+        // so the loop rests 100 ms between checks: without the rest it took half of all commands
+        // and made students' own loops (like steering the Agent) slow.
         loops.forever(function () {
             if (slots.length == 0) {
                 loops.pause(200)
                 return
             }
-            rounds++
-            let check = rounds % 10 == 0
-            if (!check && blocks.testForBlock(GOLD_BLOCK, world(15, 250, 0))) {
-                blocks.place(AIR, world(15, 250, 0))
-                check = true
-            }
-            if (!check) return
+            loops.pause(100)
+            if (!blocks.testForBlock(GOLD_BLOCK, world(15, 250, 0))) return
+            blocks.place(AIR, world(15, 250, 0))
             for (let i = 0; i < slots.length; i++) {
                 const slot = slots[i]
                 if (blocks.testForBlock(GOLD_BLOCK, world(slot, 250, 0))) {

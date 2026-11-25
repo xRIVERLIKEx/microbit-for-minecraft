@@ -2,7 +2,7 @@
 
 Code a real **BBC micro:bit** — and the micro:bit in your Minecraft Education world — from **Code Builder**.
 
-> Test version 0.7.1. Needs micro:bit program v0.8.1 and bridge v0.9.2. Not an official Minecraft, Mojang, Microsoft or Micro:bit Educational Foundation product.
+> Test version 0.7.2. Needs micro:bit program v0.8.2 and bridge v0.9.4. Not an official Minecraft, Mojang, Microsoft or Micro:bit Educational Foundation product.
 
 ## What you need
 1. The **Cleverlike micro:bit Remote** program on the micro:bit (put on once, from the micro:bit editor).
