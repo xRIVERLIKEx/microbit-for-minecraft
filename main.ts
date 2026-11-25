@@ -226,7 +226,7 @@ namespace microbit {
         ready = true
         player.execute("gamerule sendcommandfeedback false")
         player.execute("scoreboard objectives add mb dummy")
-        player.execute("tickingarea add 0 250 0 15 251 15 mblink3")
+        player.execute("tickingarea add 0 250 0 15 252 15 mblink4")
         note("ready")
         // The bridge also puts a gold block at (15, 250, 0) whenever anything happens, so each round
         // needs one check however many "on ..." blocks there are. A full check every 10th round
@@ -283,34 +283,58 @@ namespace microbit {
         note("sent " + name + " " + value)
     }
 
+    // Pictures: ONE command. "pic" = the 25 LED bits + a counter in the bits above (so the bridge sees every new
+    // picture). The same picture again is skipped, so "show leds" inside a loop costs nothing after the first time.
+    let lastPicture = -1
+    let pictureCount = 0
     function sendLeds(bits: string) {
+        setup()
         let v = 0
         let p = 1
         for (let i = 0; i < 25; i++) {
             if (bits.charAt(i) == "1") v += p
             p *= 2
         }
-        send("led", v, "lseq")
+        if (v == lastPicture) return
+        lastPicture = v
+        pictureCount = pictureCount % 31 + 1
+        player.execute("scoreboard players set pic mb " + (v + pictureCount * 33554432))
+        note("sent picture " + v)
     }
 
     // Ask the bridge for a sensor; it writes 8 bits at (0..7, 251, k) and a gold block at (15, 251, k) when done
+    // Two loops asking for the same sensor at the same time share one answer instead of getting in each other's way.
+    let reading: boolean[] = [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]
+    let lastReading: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     function readSensor(k: number, nbits: number = 8): number {
         setup()
+        if (reading[k]) {
+            let waits = 0
+            while (reading[k] && waits < 60) { loops.pause(20); waits++ }
+            return lastReading[k]
+        }
+        reading[k] = true
         const done = world(15, 251, k)
         blocks.place(AIR, done)
         send("req", k, "rseq")
         let tries = 0
+        let ok = true
         while (!blocks.testForBlock(GOLD_BLOCK, done)) {
             tries++
-            if (tries > 40) { note("no answer for sensor " + k); return -1 }
+            if (tries > 40) { note("no answer for sensor " + k); ok = false; break }
             loops.pause(25)
         }
-        let v = 0
-        let p = 1
-        for (let i = 0; i < nbits; i++) {
-            if (blocks.testForBlock(GOLD_BLOCK, world(i, 251, k))) v += p
-            p *= 2
+        let v = -1
+        if (ok) {
+            v = 0
+            let p = 1
+            for (let i = 0; i < nbits; i++) {
+                if (blocks.testForBlock(GOLD_BLOCK, world(i, 251, k))) v += p
+                p *= 2
+            }
         }
+        lastReading[k] = v
+        reading[k] = false
         return v
     }
 
@@ -350,11 +374,11 @@ namespace microbit {
     //% block="micro:bit button $button is pressed"
     //% group="Buttons and gestures" weight=98
     export function isPressed(button: MbButton): boolean {
-        const held = readSensor(7, 2)
-        if (held < 0) return false
-        if (button == MbButton.A) return (held & 1) != 0
-        if (button == MbButton.B) return (held & 2) != 0
-        return held == 3
+        setup()
+        // The bridge keeps a gold block at (0, 252, 0) while A is held and at (1, 252, 0) while B is held.
+        if (button == MbButton.A) return blocks.testForBlock(GOLD_BLOCK, world(0, 252, 0))
+        if (button == MbButton.B) return blocks.testForBlock(GOLD_BLOCK, world(1, 252, 0))
+        return blocks.testForBlock(GOLD_BLOCK, world(0, 252, 0)) && blocks.testForBlock(GOLD_BLOCK, world(1, 252, 0))
     }
 
     /**
@@ -364,7 +388,9 @@ namespace microbit {
     //% block="micro:bit is $gesture"
     //% group="Buttons and gestures" weight=96
     export function isGesture(gesture: MbGesture): boolean {
-        return readSensor(8, 4) == gesture + 1
+        setup()
+        // The bridge keeps a gold block at (gesture + 1, 252, 1) for the micro:bit's current position.
+        return blocks.testForBlock(GOLD_BLOCK, world(gesture + 1, 252, 1))
     }
 
     // ---------- Sensors ----------
@@ -444,6 +470,7 @@ namespace microbit {
     //% block="show number $n on micro:bit"
     //% group="Screen" weight=60
     export function showNumber(n: number) {
+        lastPicture = -1   // the number replaces the picture, so the next picture must be sent again
         send("num", Math.round(n), "nseq")
     }
 

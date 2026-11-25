@@ -2,7 +2,7 @@
 
 Code a real **BBC micro:bit** — and the micro:bit in your Minecraft Education world — from **Code Builder**.
 
-> Test version 0.5.0. Needs micro:bit program and bridge v0.7.0. Not an official Minecraft, Mojang, Microsoft or Micro:bit Educational Foundation product.
+> Test version 0.6.0. Needs micro:bit program v0.7.0 and bridge v0.8.0. Not an official Minecraft, Mojang, Microsoft or Micro:bit Educational Foundation product.
 
 ## What you need
 1. The **Cleverlike micro:bit Remote** program on the micro:bit (put on once, from the micro:bit editor).
@@ -64,7 +64,7 @@ To see each step in chat while testing: `microbit.debug = true`
 - Pictures and numbers: the blocks write to the scoreboard objective `mb`; the bridge reads it and sends it to the micro:bit.
 - Buttons and gestures: the bridge places a gold block at x 0–11, y 250, z 0; the blocks see it, clear it and run your code.
 - Sensors: the blocks ask the bridge, which writes the value as 8 gold/air blocks at x 0–7, y 251 (z = sensor) and a gold block at x 15 when done. Each reading takes a moment.
-- A ticking area `mblink3` keeps those spots loaded. "is pressed" and "is …" ask the bridge like the sensors do (rows 7 and 8).
+- A ticking area `mblink4` keeps those spots loaded. "is pressed" and "is …" read state blocks the bridge keeps up to date at y 252 (one check each). Pictures are one command, and the same picture twice is skipped.
 
 Icon pictures come from [pxt-microbit](https://github.com/microsoft/pxt-microbit) (MIT, Microsoft).
 
