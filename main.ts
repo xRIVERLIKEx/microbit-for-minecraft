@@ -374,7 +374,8 @@ namespace microbit {
      */
     //% block="show leds on micro:bit"
     //% blockId=mbmc_show_leds
-    //% imageLiteral=1
+    //% gridLiteral=1 gridLiteralOnColor="#ff3b3b" gridLiteralOffColor="#3a1010"
+    // (not imageLiteral: the compiler turns that into a micro:bit-only image object, which Code Builder can't run)
     //% group="Screen" weight=70
     export function showLeds(leds: string) {
         const text = "" + leds
@@ -382,8 +383,8 @@ namespace microbit {
         let bits = ""
         for (let i = 0; i < text.length; i++) {
             const c = text.charAt(i)
-            if (c == "#") bits += "1"
-            else if (c == ".") bits += "0"
+            if (c == "#" || (c >= "1" && c <= "9")) bits += "1"
+            else if (c == "." || c == "0") bits += "0"
         }
         while (bits.length < 25) bits += "0"
         sendLeds(bits)
