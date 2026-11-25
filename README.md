@@ -2,7 +2,7 @@
 
 Code a real **BBC micro:bit** — and the micro:bit in your Minecraft Education world — from **Code Builder**.
 
-> Test version 0.6.0. Needs micro:bit program v0.7.0 and bridge v0.8.0. Not an official Minecraft, Mojang, Microsoft or Micro:bit Educational Foundation product.
+> Test version 0.7.0. Needs micro:bit program v0.8.0 and bridge v0.9.0. Not an official Minecraft, Mojang, Microsoft or Micro:bit Educational Foundation product.
 
 ## What you need
 1. The **Cleverlike micro:bit Remote** program on the micro:bit (put on once, from the micro:bit editor).
@@ -33,7 +33,16 @@ Open **Extensions** and paste this repository's address: `https://github.com/xri
 - **show leds on micro:bit** (click the 5×5 grid to draw)
 - **show icon … on micro:bit** (the micro:bit's 40 icons)
 - **show number … on micro:bit**
+- **show string … on micro:bit** (scrolls up to 30 letters, numbers and symbols)
 - **clear micro:bit screen**
+
+**Pins and redstone**
+- **set micro:bit pin P0 / P1 / P2 on / off** (turns the pin on or off, e.g. an LED wired to it)
+- **micro:bit pin P0 / P1 / P2 is on** (true or false; the pin becomes an input)
+- **when micro:bit pin … is on, power redstone at …** puts a redstone block at that spot while the pin is on, and removes it when the pin turns off.
+- **when redstone lamp at … is lit, turn on micro:bit pin …** turns the pin on while that lamp is lit.
+
+Run the two *when …* blocks once (for example in *on start*). The bridge keeps them going until Minecraft reconnects. Touch a wire between a pin and 3V to turn an input pin on.
 
 ```ts
 microbit.onButtonPressed(MbButton.A, function () {
@@ -64,13 +73,20 @@ loops.forever(function () {
 })
 ```
 
+Light a redstone lamp from the micro:bit:
+
+```ts
+microbit.linkPinToRedstone(MbPin.P0, pos(0, 0, 2))
+```
+
 To see each step in chat while testing: `microbit.debug = true`
 
 ## How it works
 - Pictures and numbers: the blocks write to the scoreboard objective `mb`; the bridge reads it and sends it to the micro:bit.
 - Buttons and gestures: the bridge places a gold block at x 0–11, y 250, z 0; the blocks see it, clear it and run your code.
-- Sensors: the blocks ask the bridge, which writes the value as 8 gold/air blocks at x 0–7, y 251 (z = sensor) and a gold block at x 15 when done. Each reading takes a moment.
-- A ticking area `mblink4` keeps those spots loaded. "is pressed" and "is …" read state blocks the bridge keeps up to date at y 252 (one check each). Pictures are one command, and the same picture twice is skipped.
+- Sensors: the bridge keeps the latest readings as 8 gold/air blocks at x 0–7, y 253 (z = sensor), so a reading is quick. Older bridges answer on request at y 251.
+- Text, pins and redstone links go through the same `mb` scoreboard. Pin states are kept at y 252, z 2.
+- A ticking area `mblink5` keeps those spots loaded. "is pressed" and "is …" read state blocks the bridge keeps up to date at y 252 (one check each). Pictures are one command, and the same picture twice is skipped.
 
 Icon pictures come from [pxt-microbit](https://github.com/microsoft/pxt-microbit) (MIT, Microsoft).
 

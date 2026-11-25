@@ -50,6 +50,22 @@ enum MbRotation {
     Roll
 }
 
+enum MbPin {
+    //% block="P0"
+    P0,
+    //% block="P1"
+    P1,
+    //% block="P2"
+    P2
+}
+
+enum MbOnOff {
+    //% block="on"
+    On,
+    //% block="off"
+    Off
+}
+
 enum MbIcon {
     //% block="heart"
     Heart,
@@ -138,7 +154,7 @@ enum MbIcon {
 }
 
 //% color=#00a4a6 icon="\uf2db" block="micro:bit" weight=200
-//% groups=['Buttons and gestures', 'Sensors', 'Screen']
+//% groups=['Buttons and gestures', 'Sensors', 'Screen', 'Pins and redstone']
 namespace microbit {
     let ICONS: string[] = [
         "0101011111111110111000100", // heart
@@ -226,7 +242,7 @@ namespace microbit {
         ready = true
         player.execute("gamerule sendcommandfeedback false")
         player.execute("scoreboard objectives add mb dummy")
-        player.execute("tickingarea add 0 250 0 15 252 15 mblink4")
+        player.execute("tickingarea add 0 250 0 15 253 15 mblink5")
         note("ready")
         // The bridge also puts a gold block at (15, 250, 0) whenever anything happens, so each round
         // needs one check however many "on ..." blocks there are. A full check every 10th round
@@ -312,6 +328,18 @@ namespace microbit {
             let waits = 0
             while (reading[k] && waits < 60) { loops.pause(20); waits++ }
             return lastReading[k]
+        }
+        // Bridge v0.9.0+ keeps light, temperature, acceleration and rotation ready at y 253
+        // (8 bits at x 0-7, z = sensor) and a gold "live" block at (15, 253, 0): just read them, no asking.
+        if (k <= 6 && nbits == 8 && blocks.testForBlock(GOLD_BLOCK, world(15, 253, 0))) {
+            let pv = 0
+            let pp = 1
+            for (let i = 0; i < 8; i++) {
+                if (blocks.testForBlock(GOLD_BLOCK, world(i, 253, k))) pv += pp
+                pp *= 2
+            }
+            lastReading[k] = pv
+            return pv
         }
         reading[k] = true
         const done = world(15, 251, k)
@@ -475,11 +503,115 @@ namespace microbit {
     }
 
     /**
+     * Scroll text across the micro:bit's screen (up to 30 letters, numbers and symbols)
+     */
+    //% block="show string $text on micro:bit"
+    //% text.defl="Hello!"
+    //% group="Screen" weight=58
+    export function showString(text: string) {
+        setup()
+        lastPicture = -1
+        // 4 characters per score (7 bits each), then tseq = counter * 64 + length: the bridge reads it when tseq changes
+        let clean = ""
+        for (let i = 0; i < text.length && clean.length < 30; i++) {
+            const c = text.charCodeAt(i)
+            if (c >= 32 && c <= 126) clean += text.charAt(i)
+        }
+        const n = clean.length
+        for (let w = 0; w * 4 < n; w++) {
+            let v = 0
+            let p = 1
+            for (let j = 0; j < 4; j++) {
+                const i = w * 4 + j
+                if (i < n) v += clean.charCodeAt(i) * p
+                p *= 128
+            }
+            player.execute("scoreboard players set t" + w + " mb " + v)
+        }
+        textCount = textCount % 1000 + 1
+        player.execute("scoreboard players set tseq mb " + (textCount * 64 + n))
+        note("sent text " + clean)
+    }
+    let textCount = 0
+
+    /**
      * Turn off all the micro:bit's lights
      */
     //% block="clear micro:bit screen"
     //% group="Screen" weight=55
     export function clearScreen() {
         sendLeds("0000000000000000000000000")
+    }
+
+    // ---------- Pins and redstone ----------
+
+    let pinCount = 0
+    let pinIsInput: boolean[] = [false, false, false]
+
+    /**
+     * Turn a micro:bit pin on or off (for example an LED or a buzzer wired to it)
+     */
+    //% block="set micro:bit pin $pin $state"
+    //% group="Pins and redstone" weight=50
+    export function setPin(pin: MbPin, state: MbOnOff) {
+        setup()
+        pinIsInput[pin] = false
+        pinCount = pinCount % 1000 + 1
+        // pinw = counter * 8 + pin * 2 + on
+        player.execute("scoreboard players set pinw mb " + (pinCount * 8 + pin * 2 + (state == MbOnOff.On ? 1 : 0)))
+    }
+
+    /**
+     * True while something wired to the pin turns it on (for example a switch or button)
+     */
+    //% block="micro:bit pin $pin is on"
+    //% group="Pins and redstone" weight=48
+    export function pinIsOn(pin: MbPin): boolean {
+        setup()
+        if (!pinIsInput[pin]) {
+            pinIsInput[pin] = true
+            pinCount = pinCount % 1000 + 1
+            // pinm = counter * 4 + pin: tells the micro:bit to read this pin
+            player.execute("scoreboard players set pinm mb " + (pinCount * 4 + pin))
+        }
+        // The bridge keeps a gold block at (pin, 252, 2) while the pin is on
+        return blocks.testForBlock(GOLD_BLOCK, world(pin, 252, 2))
+    }
+
+    let linkCount = 0
+    function sendLink(pin: MbPin, position: Position, kind: number) {
+        setup()
+        const p = position.toWorld()
+        player.execute("scoreboard players set lx mb " + p.getValue(Axis.X))
+        player.execute("scoreboard players set ly mb " + p.getValue(Axis.Y))
+        player.execute("scoreboard players set lz mb " + p.getValue(Axis.Z))
+        linkCount = linkCount % 1000 + 1
+        // link = counter * 8 + pin * 2 + kind (0 = pin powers redstone, 1 = redstone lamp sets pin)
+        player.execute("scoreboard players set link mb " + (linkCount * 8 + pin * 2 + kind))
+        note("link pin " + pin + " kind " + kind)
+    }
+
+    /**
+     * From now on, whenever the micro:bit pin is on, a redstone block appears at this position
+     * (and disappears when it's off). Wire a switch or button to the pin on the real micro:bit.
+     */
+    //% block="when micro:bit pin $pin is on, power redstone at $position"
+    //% position.shadow=minecraftCreatePosition
+    //% group="Pins and redstone" weight=46
+    export function linkPinToRedstone(pin: MbPin, position: Position) {
+        pinIsInput[pin] = true
+        sendLink(pin, position, 0)
+    }
+
+    /**
+     * From now on, whenever the redstone lamp at this position is lit, the micro:bit pin turns on
+     * (and off when the lamp goes out). Put a redstone lamp at the end of your circuit.
+     */
+    //% block="when redstone lamp at $position is lit, turn on micro:bit pin $pin"
+    //% position.shadow=minecraftCreatePosition
+    //% group="Pins and redstone" weight=44
+    export function linkLampToPin(position: Position, pin: MbPin) {
+        pinIsInput[pin] = false
+        sendLink(pin, position, 1)
     }
 }
