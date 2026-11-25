@@ -226,9 +226,24 @@ namespace microbit {
         ready = true
         player.execute("gamerule sendcommandfeedback false")
         player.execute("scoreboard objectives add mb dummy")
-        player.execute("tickingarea add 0 250 0 15 251 7 mblink2")
+        player.execute("tickingarea add 0 250 0 15 251 15 mblink3")
         note("ready")
+        // The bridge also puts a gold block at (15, 250, 0) whenever anything happens, so each round
+        // needs one check however many "on ..." blocks there are. A full check every 10th round
+        // keeps it working with older bridges that don't set it.
+        let rounds = 0
         loops.forever(function () {
+            if (slots.length == 0) {
+                loops.pause(200)
+                return
+            }
+            rounds++
+            let check = rounds % 10 == 0
+            if (!check && blocks.testForBlock(GOLD_BLOCK, world(15, 250, 0))) {
+                blocks.place(AIR, world(15, 250, 0))
+                check = true
+            }
+            if (!check) return
             for (let i = 0; i < slots.length; i++) {
                 const slot = slots[i]
                 if (blocks.testForBlock(GOLD_BLOCK, world(slot, 250, 0))) {
@@ -238,7 +253,6 @@ namespace microbit {
                     note("event " + slot + ": done")
                 }
             }
-            if (slots.length == 0) loops.pause(200)
         })
     }
 
@@ -280,7 +294,7 @@ namespace microbit {
     }
 
     // Ask the bridge for a sensor; it writes 8 bits at (0..7, 251, k) and a gold block at (15, 251, k) when done
-    function readSensor(k: number): number {
+    function readSensor(k: number, nbits: number = 8): number {
         setup()
         const done = world(15, 251, k)
         blocks.place(AIR, done)
@@ -293,7 +307,7 @@ namespace microbit {
         }
         let v = 0
         let p = 1
-        for (let i = 0; i < 8; i++) {
+        for (let i = 0; i < nbits; i++) {
             if (blocks.testForBlock(GOLD_BLOCK, world(i, 251, k))) v += p
             p *= 2
         }
@@ -328,6 +342,29 @@ namespace microbit {
     //% group="Buttons and gestures" weight=100
     export function onGesture(gesture: MbGesture, handler: () => void) {
         onSlot(4 + gesture, handler)
+    }
+
+    /**
+     * True while the button is held down. Use it in "if" and "while".
+     */
+    //% block="micro:bit button $button is pressed"
+    //% group="Buttons and gestures" weight=98
+    export function isPressed(button: MbButton): boolean {
+        const held = readSensor(7, 2)
+        if (held < 0) return false
+        if (button == MbButton.A) return (held & 1) != 0
+        if (button == MbButton.B) return (held & 2) != 0
+        return held == 3
+    }
+
+    /**
+     * True while the micro:bit is in this position or movement (for example tilted left).
+     * Use it in "if" and "while", e.g. to steer the Agent by tilting the micro:bit.
+     */
+    //% block="micro:bit is $gesture"
+    //% group="Buttons and gestures" weight=96
+    export function isGesture(gesture: MbGesture): boolean {
+        return readSensor(8, 4) == gesture + 1
     }
 
     // ---------- Sensors ----------

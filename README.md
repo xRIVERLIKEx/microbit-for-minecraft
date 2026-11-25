@@ -2,7 +2,7 @@
 
 Code a real **BBC micro:bit** — and the micro:bit in your Minecraft Education world — from **Code Builder**.
 
-> Test version 0.4.0. Not an official Minecraft, Mojang, Microsoft or Micro:bit Educational Foundation product.
+> Test version 0.5.0. Needs micro:bit program and bridge v0.7.0. Not an official Minecraft, Mojang, Microsoft or Micro:bit Educational Foundation product.
 
 ## What you need
 1. The **Cleverlike micro:bit Remote** program on the micro:bit (put on once, from the micro:bit editor).
@@ -18,6 +18,8 @@ Open **Extensions** and paste this repository's address: `https://github.com/xri
 - **on micro:bit button A / B / A+B pressed**
 - **on micro:bit logo pressed (V2 only)** — the touch logo only exists on micro:bit V2. A V1 has no touch logo, so this block never runs there.
 - **on micro:bit shake / logo up / logo down / tilt left / tilt right / screen up / screen down / free fall**
+- **micro:bit button A / B / A+B is pressed** (true or false — use in *if* and *while*)
+- **micro:bit is shake / logo up / tilt left / …** (true or false — use in *if* and *while*)
 
 > **micro:bit V1 or V2?** Everything works on both, except the touch logo (V2 only). A V2 has a small microphone hole next to the gold logo on the front.
 
@@ -42,13 +44,27 @@ microbit.onButtonPressed(MbButton.B, function () {
 })
 ```
 
+Steer the Agent by tilting the micro:bit (hold A to walk forward):
+
+```ts
+loops.forever(function () {
+    if (microbit.isGesture(MbGesture.TiltLeft)) {
+        agent.turn(LEFT_TURN)
+    } else if (microbit.isGesture(MbGesture.TiltRight)) {
+        agent.turn(RIGHT_TURN)
+    } else if (microbit.isPressed(MbButton.A)) {
+        agent.move(FORWARD, 1)
+    }
+})
+```
+
 To see each step in chat while testing: `microbit.debug = true`
 
 ## How it works
 - Pictures and numbers: the blocks write to the scoreboard objective `mb`; the bridge reads it and sends it to the micro:bit.
 - Buttons and gestures: the bridge places a gold block at x 0–11, y 250, z 0; the blocks see it, clear it and run your code.
 - Sensors: the blocks ask the bridge, which writes the value as 8 gold/air blocks at x 0–7, y 251 (z = sensor) and a gold block at x 15 when done. Each reading takes a moment.
-- A ticking area `mblink2` keeps those spots loaded.
+- A ticking area `mblink3` keeps those spots loaded. "is pressed" and "is …" ask the bridge like the sensors do (rows 7 and 8).
 
 Icon pictures come from [pxt-microbit](https://github.com/microsoft/pxt-microbit) (MIT, Microsoft).
 
