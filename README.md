@@ -16,8 +16,10 @@ Open **Extensions** and paste this repository's address: `https://github.com/xri
 ## Blocks
 **Buttons and gestures**
 - **on micro:bit button A / B / A+B pressed**
-- **on micro:bit logo pressed** (micro:bit V2)
+- **on micro:bit logo pressed (V2 only)** — the touch logo only exists on micro:bit V2. A V1 has no touch logo, so this block never runs there.
 - **on micro:bit shake / logo up / logo down / tilt left / tilt right / screen up / screen down / free fall**
+
+> **micro:bit V1 or V2?** Everything works on both, except the touch logo (V2 only). A V2 has a small microphone hole next to the gold logo on the front.
 
 **Sensors**
 - **micro:bit light level** (0–255)

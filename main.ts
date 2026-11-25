@@ -312,9 +312,10 @@ namespace microbit {
     }
 
     /**
-     * Run code when the micro:bit's gold logo is touched (micro:bit V2)
+     * Run code when the micro:bit's gold logo is touched.
+     * micro:bit V2 only: the V1 has no touch logo (look for the small microphone hole next to the logo on the front).
      */
-    //% block="on micro:bit logo pressed"
+    //% block="on micro:bit logo pressed (V2 only)"
     //% group="Buttons and gestures" weight=105
     export function onLogoPressed(handler: () => void) {
         onSlot(3, handler)
