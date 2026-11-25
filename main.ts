@@ -206,8 +206,10 @@ namespace microbit {
                 const spot = world(slots[i], 250, 0)
                 if (blocks.testForBlock(GOLD_BLOCK, spot)) {
                     blocks.place(AIR, spot)
-                    note("event " + slots[i])
-                    handlers[i]()
+                    note("event " + slots[i] + ": running your blocks")
+                    const h = handlers[i]
+                    h()
+                    note("event " + slots[i] + ": done")
                 }
             }
             if (slots.length == 0) loops.pause(200)
@@ -226,6 +228,7 @@ namespace microbit {
     // Messages to the bridge: <name> holds the value, <channel> counts messages, seq counts all
     function send(name: string, value: number, channel: string) {
         setup()
+        note("sending " + name)
         player.execute("scoreboard players set " + name + " mb " + value)
         player.execute("scoreboard players add " + channel + " mb 1")
         player.execute("scoreboard players add seq mb 1")
@@ -340,9 +343,11 @@ namespace microbit {
     //% imageLiteral=1
     //% group="Screen" weight=70
     export function showLeds(leds: string) {
+        const text = "" + leds
+        note("show leds (" + text.length + " characters)")
         let bits = ""
-        for (let i = 0; i < leds.length; i++) {
-            const c = leds.charAt(i)
+        for (let i = 0; i < text.length; i++) {
+            const c = text.charAt(i)
             if (c == "#") bits += "1"
             else if (c == ".") bits += "0"
         }
@@ -356,6 +361,7 @@ namespace microbit {
     //% block="show icon $icon on micro:bit"
     //% group="Screen" weight=65
     export function showIcon(icon: MbIcon) {
+        note("show icon " + icon)
         sendLeds(ICONS[icon])
     }
 
