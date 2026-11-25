@@ -2,7 +2,7 @@
 
 Code a real **BBC micro:bit** — and the micro:bit in your Minecraft Education world — from **Code Builder**.
 
-> Test version 0.3.0. Not an official Minecraft, Mojang, Microsoft or Micro:bit Educational Foundation product.
+> Test version 0.4.0. Not an official Minecraft, Mojang, Microsoft or Micro:bit Educational Foundation product.
 
 ## What you need
 1. The **Cleverlike micro:bit Remote** program on the micro:bit (put on once, from the micro:bit editor).
@@ -14,8 +14,20 @@ Code a real **BBC micro:bit** — and the micro:bit in your Minecraft Education 
 Open **Extensions** and paste this repository's address: `https://github.com/xriverlikex/microbit-for-minecraft`
 
 ## Blocks
-- **on micro:bit button A/B pressed**
-- **show icon … on micro:bit**
+**Buttons and gestures**
+- **on micro:bit button A / B / A+B pressed**
+- **on micro:bit logo pressed** (micro:bit V2)
+- **on micro:bit shake / logo up / logo down / tilt left / tilt right / screen up / screen down / free fall**
+
+**Sensors**
+- **micro:bit light level** (0–255)
+- **micro:bit temperature (°C)**
+- **micro:bit acceleration (mg) x / y / z** (steps of 16)
+- **micro:bit rotation (°) pitch / roll** (steps of 2)
+
+**Screen**
+- **show leds on micro:bit** (click the 5×5 grid to draw)
+- **show icon … on micro:bit** (the micro:bit's 40 icons)
 - **show number … on micro:bit**
 - **clear micro:bit screen**
 
@@ -32,7 +44,11 @@ To see each step in chat while testing: `microbit.debug = true`
 
 ## How it works
 - Pictures and numbers: the blocks write to the scoreboard objective `mb`; the bridge reads it and sends it to the micro:bit.
-- Buttons: the bridge places a gold block at 0 250 0 (A) or 1 250 0 (B); the blocks see it, clear it and run your code. A ticking area `mblink` keeps that spot loaded.
+- Buttons and gestures: the bridge places a gold block at x 0–11, y 250, z 0; the blocks see it, clear it and run your code.
+- Sensors: the blocks ask the bridge, which writes the value as 8 gold/air blocks at x 0–7, y 251 (z = sensor) and a gold block at x 15 when done. Each reading takes a moment.
+- A ticking area `mblink2` keeps those spots loaded.
+
+Icon pictures come from [pxt-microbit](https://github.com/microsoft/pxt-microbit) (MIT, Microsoft).
 
 ## License
 MIT © Cleverlike

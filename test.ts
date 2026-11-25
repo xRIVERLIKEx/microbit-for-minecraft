@@ -3,8 +3,17 @@ microbit.onButtonPressed(MbButton.A, function () {
     microbit.showIcon(MbIcon.Happy)
 })
 microbit.onButtonPressed(MbButton.B, function () {
-    microbit.showNumber(42)
+    microbit.showNumber(microbit.temperature())
 })
-player.onChat("heart", function () {
-    microbit.showIcon(MbIcon.Heart)
+microbit.onGesture(MbGesture.Shake, function () {
+    microbit.showLeds(`
+        # . . . #
+        . # . # .
+        . . # . .
+        . # . # .
+        # . . . #
+        `)
+})
+microbit.onLogoPressed(function () {
+    microbit.showNumber(microbit.lightLevel())
 })
