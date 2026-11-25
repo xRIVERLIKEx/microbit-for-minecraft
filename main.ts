@@ -329,9 +329,10 @@ namespace microbit {
             while (reading[k] && waits < 60) { loops.pause(20); waits++ }
             return lastReading[k]
         }
-        // Bridge v0.9.0+ keeps light, temperature, acceleration and rotation ready at y 253
-        // (8 bits at x 0-7, z = sensor) and a gold "live" block at (15, 253, 0): just read them, no asking.
-        if (k <= 6 && nbits == 8 && blocks.testForBlock(GOLD_BLOCK, world(15, 253, 0))) {
+        // Bridge v0.9.2+ keeps each sensor that has been asked for once ready at y 253
+        // (8 bits at x 0-7, z = sensor) with a gold "ready" block at (15, 253, sensor): just read it, no asking.
+        // The first reading of a sensor asks the bridge (below), which then keeps that sensor ready.
+        if (k <= 6 && nbits == 8 && blocks.testForBlock(GOLD_BLOCK, world(15, 253, k))) {
             let pv = 0
             let pp = 1
             for (let i = 0; i < 8; i++) {
