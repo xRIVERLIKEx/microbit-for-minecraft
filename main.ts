@@ -187,11 +187,38 @@ namespace microbit {
     export let debug = false   // set microbit.debug = true to see each step in chat
     let ready = false
     // event slots: gold block at (slot, 250, 0). 0 A, 1 B, 2 A+B, 3 logo, 4.. gestures
-    let handlers: (() => void)[] = []
+    // Handlers are kept in plain variables (not a list): Code Builder didn't run handlers stored in a list.
+    let h0: () => void = null
+    let h1: () => void = null
+    let h2: () => void = null
+    let h3: () => void = null
+    let h4: () => void = null
+    let h5: () => void = null
+    let h6: () => void = null
+    let h7: () => void = null
+    let h8: () => void = null
+    let h9: () => void = null
+    let h10: () => void = null
+    let h11: () => void = null
     let slots: number[] = []
 
     function note(text: string) {
         if (debug) player.say("micro:bit: " + text)
+    }
+
+    function runSlot(slot: number) {
+        if (slot == 0) { if (h0) h0() }
+        else if (slot == 1) { if (h1) h1() }
+        else if (slot == 2) { if (h2) h2() }
+        else if (slot == 3) { if (h3) h3() }
+        else if (slot == 4) { if (h4) h4() }
+        else if (slot == 5) { if (h5) h5() }
+        else if (slot == 6) { if (h6) h6() }
+        else if (slot == 7) { if (h7) h7() }
+        else if (slot == 8) { if (h8) h8() }
+        else if (slot == 9) { if (h9) h9() }
+        else if (slot == 10) { if (h10) h10() }
+        else if (slot == 11) { if (h11) h11() }
     }
 
     function setup() {
@@ -203,13 +230,12 @@ namespace microbit {
         note("ready")
         loops.forever(function () {
             for (let i = 0; i < slots.length; i++) {
-                const spot = world(slots[i], 250, 0)
-                if (blocks.testForBlock(GOLD_BLOCK, spot)) {
-                    blocks.place(AIR, spot)
-                    note("event " + slots[i] + ": running your blocks")
-                    const h = handlers[i]
-                    h()
-                    note("event " + slots[i] + ": done")
+                const slot = slots[i]
+                if (blocks.testForBlock(GOLD_BLOCK, world(slot, 250, 0))) {
+                    blocks.place(AIR, world(slot, 250, 0))
+                    note("event " + slot + ": running your blocks")
+                    runSlot(slot)
+                    note("event " + slot + ": done")
                 }
             }
             if (slots.length == 0) loops.pause(200)
@@ -217,11 +243,19 @@ namespace microbit {
     }
 
     function onSlot(slot: number, handler: () => void) {
-        for (let i = 0; i < slots.length; i++) {
-            if (slots[i] == slot) { handlers[i] = handler; setup(); return }
-        }
-        slots.push(slot)
-        handlers.push(handler)
+        if (slot == 0) h0 = handler
+        else if (slot == 1) h1 = handler
+        else if (slot == 2) h2 = handler
+        else if (slot == 3) h3 = handler
+        else if (slot == 4) h4 = handler
+        else if (slot == 5) h5 = handler
+        else if (slot == 6) h6 = handler
+        else if (slot == 7) h7 = handler
+        else if (slot == 8) h8 = handler
+        else if (slot == 9) h9 = handler
+        else if (slot == 10) h10 = handler
+        else if (slot == 11) h11 = handler
+        if (slots.indexOf(slot) < 0) slots.push(slot)
         setup()
     }
 
