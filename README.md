@@ -44,15 +44,21 @@ microbit.onButtonPressed(MbButton.B, function () {
 })
 ```
 
-Steer the Agent by tilting the micro:bit (hold A to walk forward):
+Steer the Agent by tilting the micro:bit. Use **while** loops for controls: each loop keeps going as long as you hold the tilt or button, which feels much smoother than an *if* that checks everything every round.
 
 ```ts
 loops.forever(function () {
-    if (microbit.isGesture(MbGesture.TiltLeft)) {
+    while (microbit.isGesture(MbGesture.TiltLeft)) {
         agent.turn(LEFT_TURN)
-    } else if (microbit.isGesture(MbGesture.TiltRight)) {
+    }
+})
+loops.forever(function () {
+    while (microbit.isGesture(MbGesture.TiltRight)) {
         agent.turn(RIGHT_TURN)
-    } else if (microbit.isPressed(MbButton.A)) {
+    }
+})
+loops.forever(function () {
+    while (microbit.isPressed(MbButton.A)) {
         agent.move(FORWARD, 1)
     }
 })

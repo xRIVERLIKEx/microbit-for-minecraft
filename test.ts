@@ -18,13 +18,19 @@ microbit.onLogoPressed(function () {
     microbit.showNumber(microbit.lightLevel())
 })
 
-// Steer the Agent by tilting the micro:bit
+// Steer the Agent by tilting the micro:bit: one forever + while loop per control works best
 loops.forever(function () {
-    if (microbit.isGesture(MbGesture.TiltLeft)) {
+    while (microbit.isGesture(MbGesture.TiltLeft)) {
         agent.turn(LEFT_TURN)
-    } else if (microbit.isGesture(MbGesture.TiltRight)) {
+    }
+})
+loops.forever(function () {
+    while (microbit.isGesture(MbGesture.TiltRight)) {
         agent.turn(RIGHT_TURN)
-    } else if (microbit.isPressed(MbButton.A)) {
+    }
+})
+loops.forever(function () {
+    while (microbit.isPressed(MbButton.A)) {
         agent.move(FORWARD, 1)
     }
 })
