@@ -698,12 +698,40 @@ namespace microbit {
     }
 
     let linkCount = 0
+    // World coordinates of a position. A relative position like pos(2, 0, 0) prints as "~2 ~0 ~0":
+    // each "~" number is added to the player's world position, so the link stays at that spot.
+    // (toWorld() alone left relative numbers as they were, so links went to the wrong place.)
+    function worldXYZ(position: Position): number[] {
+        // keep only the numbers and "~" signs, whether it prints as "~2 ~0 ~0" or "(~2, ~0, ~0)"
+        const text = position.toString()
+        let clean = ""
+        for (let i = 0; i < text.length; i++) {
+            const c = text.charAt(i)
+            clean += c == "(" || c == ")" || c == "," ? " " : c
+        }
+        const parts: string[] = []
+        for (const t of clean.split(" ")) if (t.length > 0) parts.push(t)
+        const here = player.position()
+        const w = position.toWorld()
+        const axes = [Axis.X, Axis.Y, Axis.Z]
+        const out = [0, 0, 0]
+        for (let i = 0; i < 3; i++) {
+            const t = parts.length == 3 ? parts[i] : ""
+            if (t.charAt(0) == "~") {
+                out[i] = here.getValue(axes[i]) + (t.length > 1 ? parseInt(t.substr(1)) : 0)
+            } else {
+                out[i] = w.getValue(axes[i])
+            }
+        }
+        return out
+    }
+
     function sendLink(pin: MbPin, position: Position, kind: number) {
         setup()
-        const p = position.toWorld()
-        player.execute("scoreboard players set lx mb " + p.getValue(Axis.X))
-        player.execute("scoreboard players set ly mb " + p.getValue(Axis.Y))
-        player.execute("scoreboard players set lz mb " + p.getValue(Axis.Z))
+        const xyz = worldXYZ(position)
+        player.execute("scoreboard players set lx mb " + xyz[0])
+        player.execute("scoreboard players set ly mb " + xyz[1])
+        player.execute("scoreboard players set lz mb " + xyz[2])
         linkCount = linkCount % 1000 + 1
         // link = counter * 8 + pin * 2 + kind (0 = pin powers redstone, 1 = redstone lamp sets pin)
         player.execute("scoreboard players set link mb " + (linkCount * 8 + pin * 2 + kind))
