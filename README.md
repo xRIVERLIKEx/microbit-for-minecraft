@@ -2,7 +2,7 @@
 
 Code a real **BBC micro:bit** — and the micro:bit in your Minecraft Education world — from **Code Builder**.
 
-> Test version 0.9.0. Needs micro:bit program v0.9.0, bridge v0.11.0 and add-on v0.6.0. Not an official Minecraft, Mojang, Microsoft or Micro:bit Educational Foundation product.
+> Test version 0.9.0. Needs micro:bit program v0.9.0, bridge v0.11.1 and add-on v0.6.1. Not an official Minecraft, Mojang, Microsoft or Micro:bit Educational Foundation product.
 
 ## What you need
 1. The **micro:bit Link Bridge** running on the computer. It puts the Cleverlike program on the micro:bit (the right one for a V1 or a V2).
@@ -51,7 +51,7 @@ Open **Extensions** and paste this repository's address: `https://github.com/xri
 **Pins and redstone**
 - **set micro:bit pin P0 / P1 / P2 on / off** (turns the pin on or off, e.g. an LED wired to it)
 - **micro:bit pin P0 / P1 / P2 is on** (true or false; the pin becomes an input)
-- **set micro:bit in the world redstone on / off**: while it's on, the block under the micro:bit in the world becomes a redstone block (the original block comes back when it's off). Run redstone dust from it to lamps, doors, pistons…
+- **set micro:bit in the world redstone on / off**: while it's on, a redstone torch stands at the feet of the micro:bit in the world. Run redstone dust from right next to it to lamps, doors, pistons…
 - **micro:bit in the world gives redstone while button A is pressed / pin P0 is on / tilted left / …**: run it once; the bridge keeps the redstone following the micro:bit, no loop needed.
 - **when redstone lamp at … is lit, turn on micro:bit pin …** turns the pin on while that lamp is lit.
 - (The old **when micro:bit pin … is on, power redstone at …** block is hidden but still works in older programs.)

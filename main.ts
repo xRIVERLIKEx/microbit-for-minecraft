@@ -772,8 +772,8 @@ namespace microbit {
     }
 
     // ---------- Redstone from the micro:bit in the world ----------
-    // rsm = counter * 32 + code: 0 off, 1-15 "while ..." (MbRedstoneWhile), 31 on. The add-on turns the block
-    // under each world micro:bit into a redstone block while it's on, and puts the original block back after.
+    // rsm = counter * 32 + code: 0 off, 1-15 "while ..." (MbRedstoneWhile), 31 on. The add-on puts a redstone
+    // torch at each world micro:bit's feet while it's on, and puts back what was there after.
     let redstoneCount = 0
     function sendRedstone(code: number) {
         redstoneCount = redstoneCount % 1000 + 1
@@ -781,8 +781,8 @@ namespace microbit {
     }
 
     /**
-     * Turn the redstone power of the micro:bit in the world on or off. While it's on, the block under the
-     * micro:bit gives redstone power: run redstone dust from it to lamps, doors, pistons and more.
+     * Turn the redstone power of the micro:bit in the world on or off. While it's on, a redstone torch stands
+     * at the micro:bit's feet: run redstone dust from right next to the micro:bit to lamps, doors, pistons and more.
      */
     //% block="set micro:bit in the world redstone $state"
     //% group="Pins and redstone" weight=60
