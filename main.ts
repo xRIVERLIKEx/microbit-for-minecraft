@@ -66,6 +66,39 @@ enum MbOnOff {
     Off
 }
 
+enum MbRedstoneWhile {
+    //% block="button A is pressed"
+    ButtonA = 1,
+    //% block="button B is pressed"
+    ButtonB = 2,
+    //% block="buttons A+B are pressed"
+    ButtonsAB = 3,
+    //% block="the logo is pressed"
+    Logo = 4,
+    //% block="pin P0 is on"
+    P0 = 5,
+    //% block="pin P1 is on"
+    P1 = 6,
+    //% block="pin P2 is on"
+    P2 = 7,
+    //% block="it is shaken"
+    Shake = 8,
+    //% block="logo up"
+    LogoUp = 9,
+    //% block="logo down"
+    LogoDown = 10,
+    //% block="tilted left"
+    TiltLeft = 11,
+    //% block="tilted right"
+    TiltRight = 12,
+    //% block="screen up"
+    ScreenUp = 13,
+    //% block="screen down"
+    ScreenDown = 14,
+    //% block="in free fall"
+    FreeFall = 15,
+}
+
 enum MbIcon {
     //% block="heart"
     Heart,
@@ -738,12 +771,43 @@ namespace microbit {
         note("link pin " + pin + " kind " + kind)
     }
 
+    // ---------- Redstone from the micro:bit in the world ----------
+    // rsm = counter * 32 + code: 0 off, 1-15 "while ..." (MbRedstoneWhile), 31 on. The add-on turns the block
+    // under each world micro:bit into a redstone block while it's on, and puts the original block back after.
+    let redstoneCount = 0
+    function sendRedstone(code: number) {
+        redstoneCount = redstoneCount % 1000 + 1
+        sendCounted("rsm", redstoneCount * 32 + code)
+    }
+
     /**
-     * From now on, whenever the micro:bit pin is on, a redstone block appears at this position
-     * (and disappears when it's off). Wire a switch or button to the pin on the real micro:bit.
+     * Turn the redstone power of the micro:bit in the world on or off. While it's on, the block under the
+     * micro:bit gives redstone power: run redstone dust from it to lamps, doors, pistons and more.
+     */
+    //% block="set micro:bit in the world redstone $state"
+    //% group="Pins and redstone" weight=60
+    export function setRedstone(state: MbOnOff) {
+        sendRedstone(state == MbOnOff.On ? 31 : 0)
+    }
+
+    /**
+     * The micro:bit in the world gives redstone power while this is true: a button or the logo is pressed,
+     * a pin is on, or the micro:bit is tilted, shaken... Run it once (for example in "on start");
+     * the bridge keeps it going, with no loop needed. "set micro:bit in the world redstone" stops it.
+     */
+    //% block="micro:bit in the world gives redstone while $source"
+    //% group="Pins and redstone" weight=58
+    export function redstoneWhile(source: MbRedstoneWhile) {
+        sendRedstone(source)
+    }
+
+    /**
+     * Old block, kept so older programs still run: use "micro:bit in the world gives redstone while pin ... is on"
+     * and wire redstone dust from the micro:bit in the world instead.
      */
     //% block="when micro:bit pin $pin is on, power redstone at $position"
     //% position.shadow=minecraftCreatePosition
+    //% deprecated=true
     //% group="Pins and redstone" weight=46
     export function linkPinToRedstone(pin: MbPin, position: Position) {
         pinIsInput[pin] = true

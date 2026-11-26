@@ -2,7 +2,7 @@
 
 Code a real **BBC micro:bit** — and the micro:bit in your Minecraft Education world — from **Code Builder**.
 
-> Test version 0.8.1. Needs micro:bit program v0.9.0 and bridge v0.10.0. Not an official Minecraft, Mojang, Microsoft or Micro:bit Educational Foundation product.
+> Test version 0.9.0. Needs micro:bit program v0.9.0, bridge v0.11.0 and add-on v0.6.0. Not an official Minecraft, Mojang, Microsoft or Micro:bit Educational Foundation product.
 
 ## What you need
 1. The **micro:bit Link Bridge** running on the computer. It puts the Cleverlike program on the micro:bit (the right one for a V1 or a V2).
@@ -51,8 +51,10 @@ Open **Extensions** and paste this repository's address: `https://github.com/xri
 **Pins and redstone**
 - **set micro:bit pin P0 / P1 / P2 on / off** (turns the pin on or off, e.g. an LED wired to it)
 - **micro:bit pin P0 / P1 / P2 is on** (true or false; the pin becomes an input)
-- **when micro:bit pin … is on, power redstone at …** puts a redstone block at that spot while the pin is on, and removes it when the pin turns off.
+- **set micro:bit in the world redstone on / off**: while it's on, the block under the micro:bit in the world becomes a redstone block (the original block comes back when it's off). Run redstone dust from it to lamps, doors, pistons…
+- **micro:bit in the world gives redstone while button A is pressed / pin P0 is on / tilted left / …**: run it once; the bridge keeps the redstone following the micro:bit, no loop needed.
 - **when redstone lamp at … is lit, turn on micro:bit pin …** turns the pin on while that lamp is lit.
+- (The old **when micro:bit pin … is on, power redstone at …** block is hidden but still works in older programs.)
 
 Positions can be world positions (`world(10, 64, 10)`) or relative ones (`pos(2, 0, 0)`): a relative position is fixed at the spot it pointed to when the block ran. Run the two *when …* blocks once (for example in *on start*). The bridge keeps them going until Minecraft reconnects. Touch a wire between a pin and 3V to turn an input pin on.
 
