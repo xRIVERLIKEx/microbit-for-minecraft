@@ -2,13 +2,13 @@
 
 Code a real **BBC micro:bit** — and the micro:bit in your Minecraft Education world — from **Code Builder**.
 
-> Test version 0.7.2. Needs micro:bit program v0.8.2 and bridge v0.9.4. Not an official Minecraft, Mojang, Microsoft or Micro:bit Educational Foundation product.
+> Test version 0.8.0. Needs micro:bit program v0.9.0 and bridge v0.10.0. Not an official Minecraft, Mojang, Microsoft or Micro:bit Educational Foundation product.
 
 ## What you need
-1. The **Cleverlike micro:bit Remote** program on the micro:bit (put on once, from the micro:bit editor).
-2. The **micro:bit Link Bridge** running on the computer, with the micro:bit connected on its page.
+1. The **micro:bit Link Bridge** running on the computer. It puts the Cleverlike program on the micro:bit (the right one for a V1 or a V2).
+2. A micro:bit connected on the bridge's page, **or** the bridge's **pretend micro:bit** if you have none: pictures, numbers and text show on the micro:bit in the world, sounds play in the bridge window, and the bridge has buttons, tilt and sensor sliders.
 3. In Minecraft (cheats on): `/connect 127.0.0.1:19140`
-4. Optional: the Cleverlike micro:bit add-on, to see a micro:bit in the world (`/summon cleverlike:microbit ~ ~ ~2`).
+4. The Cleverlike micro:bit add-on in the world (the bridge has a download button), to see the micro:bit in the world. Hit its **A**, **B** or gold **logo** to press them; right-click it to remove it.
 
 ## Add the extension in Code Builder
 Open **Extensions** and paste this repository's address: `https://github.com/xriverlikex/microbit-for-minecraft`
@@ -20,8 +20,9 @@ Open **Extensions** and paste this repository's address: `https://github.com/xri
 - **on micro:bit shake / logo up / logo down / tilt left / tilt right / screen up / screen down / free fall**
 - **micro:bit button A / B / A+B is pressed** (true or false — use in *if* and *while*)
 - **micro:bit is shake / logo up / tilt left / …** (true or false — use in *if* and *while*)
+- **micro:bit logo is pressed (V2 only)** (true or false)
 
-> **micro:bit V1 or V2?** Everything works on both, except the touch logo (V2 only). A V2 has a small microphone hole next to the gold logo on the front.
+> **micro:bit V1 or V2?** Everything works on both, except the touch logo and the sound level (V2 only: V1 has no microphone). The V2 plays sounds on its speaker; a V1 needs a speaker or headphones on pin 0 and GND. A V2 has a small microphone hole next to the gold logo on the front. The logo on the micro:bit in the world works with both.
 
 **Sensors**
 - **micro:bit light level** (0–255)
@@ -35,6 +36,17 @@ Open **Extensions** and paste this repository's address: `https://github.com/xri
 - **show number … on micro:bit**
 - **show string … on micro:bit** (scrolls up to 30 letters, numbers and symbols)
 - **clear micro:bit screen**
+
+**Sound**
+- **play micro:bit tone … Hz for … ms** and **play micro:bit note … for … beat** (wait until the sound has finished, so a list of notes plays as a tune)
+- **play micro:bit melody …** (the micro:bit's 20 tunes; your code keeps going)
+- **stop micro:bit sound**
+- **micro:bit sound level (V2 only)** (0–255)
+
+**Radio** (real micro:bits only)
+- **set micro:bit radio group …** (0–255; micro:bits only hear each other in the same group)
+- **micro:bit radio send number …**
+- **on micro:bit radio received *receivedNumber*** (−32768 to 32767)
 
 **Pins and redstone**
 - **set micro:bit pin P0 / P1 / P2 on / off** (turns the pin on or off, e.g. an LED wired to it)
@@ -86,7 +98,8 @@ To see each step in chat while testing: `microbit.debug = true`
 - Buttons and gestures: the bridge places a gold block at x 0–11, y 250, z 0; the blocks see it, clear it and run your code.
 - Sensors: the first reading of a sensor asks the bridge (answer at y 251). After that the bridge keeps that sensor ready as 8 gold/air blocks at x 0–7, y 253 (z = sensor) with a gold block at x 15, so later readings are quick. Sensors nobody reads cost nothing.
 - Text, pins and redstone links go through the same `mb` scoreboard. Pin states are kept at y 252, z 2.
-- A ticking area `mblink5` keeps those spots loaded. "is pressed" and "is …" read state blocks the bridge keeps up to date at y 252 (one check each). Pictures are one command, and the same picture twice is skipped.
+- Sound and radio settings are two commands each (`tone`, `mel`, `rgrp` carry their own counter, then `seq`). A radio number arrives as 16 gold/air blocks at x 0–15, y 254, z 0 (number + 32768) and event slot 12.
+- A ticking area `mblink6` keeps those spots loaded. "is pressed" and "is …" read state blocks the bridge keeps up to date at y 252 (one check each). Pictures are one command, and the same picture twice is skipped.
 
 Icon pictures come from [pxt-microbit](https://github.com/microsoft/pxt-microbit) (MIT, Microsoft).
 

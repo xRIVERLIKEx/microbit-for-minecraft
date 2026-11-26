@@ -1,7 +1,7 @@
 /**
  * micro:bit for Minecraft — Cleverlike
  * Code a real BBC micro:bit (and the micro:bit in the world) from Code Builder.
- * Needs: the Cleverlike micro:bit Remote program (v0.4.0+) on the micro:bit and the micro:bit Link Bridge (v0.4.0+)
+ * Needs: the Cleverlike micro:bit Remote program (v0.9.0+) on the micro:bit and the micro:bit Link Bridge (v0.10.0+)
  * running (Minecraft: /connect 127.0.0.1:19140).
  * Icon pictures from pxt-microbit (MIT, Microsoft).
  */
@@ -153,8 +153,105 @@ enum MbIcon {
     ArrowUp,
 }
 
+enum MbNote {
+    //% block="low C"
+    LowC = 131,
+    //% block="low D"
+    LowD = 147,
+    //% block="low E"
+    LowE = 165,
+    //% block="low F"
+    LowF = 175,
+    //% block="low G"
+    LowG = 196,
+    //% block="low A"
+    LowA = 220,
+    //% block="low B"
+    LowB = 247,
+    //% block="middle C"
+    C = 262,
+    //% block="D"
+    D = 294,
+    //% block="E"
+    E = 330,
+    //% block="F"
+    F = 349,
+    //% block="G"
+    G = 392,
+    //% block="A"
+    A = 440,
+    //% block="B"
+    B = 494,
+    //% block="high C"
+    HighC = 523,
+    //% block="high D"
+    HighD = 587,
+    //% block="high E"
+    HighE = 659,
+    //% block="high F"
+    HighF = 698,
+    //% block="high G"
+    HighG = 784,
+}
+
+enum MbBeat {
+    //% block="1 beat"
+    One = 500,
+    //% block="1/2 beat"
+    Half = 250,
+    //% block="1/4 beat"
+    Quarter = 125,
+    //% block="2 beats"
+    Two = 1000,
+    //% block="4 beats"
+    Four = 2000,
+}
+
+enum MbMelody {
+    //% block="dadadadum"
+    Dadadadum = 1,
+    //% block="entertainer"
+    Entertainer = 2,
+    //% block="prelude"
+    Prelude = 3,
+    //% block="ode"
+    Ode = 4,
+    //% block="nyan"
+    Nyan = 5,
+    //% block="ringtone"
+    Ringtone = 6,
+    //% block="funk"
+    Funk = 7,
+    //% block="blues"
+    Blues = 8,
+    //% block="birthday"
+    Birthday = 9,
+    //% block="wedding"
+    Wedding = 10,
+    //% block="funeral"
+    Funeral = 11,
+    //% block="punchline"
+    Punchline = 12,
+    //% block="baddy"
+    Baddy = 13,
+    //% block="chase"
+    Chase = 14,
+    //% block="ba ding"
+    BaDing = 15,
+    //% block="wawawawaa"
+    Wawawawaa = 16,
+    //% block="jump up"
+    JumpUp = 17,
+    //% block="jump down"
+    JumpDown = 18,
+    //% block="power up"
+    PowerUp = 19,
+    //% block="power down"
+    PowerDown = 20,
+}
+
 //% color=#00a4a6 icon="\uf2db" block="micro:bit" weight=200
-//% groups=['Buttons and gestures', 'Sensors', 'Screen', 'Pins and redstone']
+//% groups=['Buttons and gestures', 'Sensors', 'Screen', 'Sound', 'Radio', 'Pins and redstone']
 namespace microbit {
     let ICONS: string[] = [
         "0101011111111110111000100", // heart
@@ -202,7 +299,7 @@ namespace microbit {
     ]
     export let debug = false   // set microbit.debug = true to see each step in chat
     let ready = false
-    // event slots: gold block at (slot, 250, 0). 0 A, 1 B, 2 A+B, 3 logo, 4.. gestures
+    // event slots: gold block at (slot, 250, 0). 0 A, 1 B, 2 A+B, 3 logo, 4.. gestures, 12 radio number
     // Handlers are kept in plain variables (not a list): Code Builder didn't run handlers stored in a list.
     let h0: () => void = null
     let h1: () => void = null
@@ -216,6 +313,7 @@ namespace microbit {
     let h9: () => void = null
     let h10: () => void = null
     let h11: () => void = null
+    let h12: (receivedNumber: number) => void = null
     let slots: number[] = []
 
     function note(text: string) {
@@ -235,6 +333,7 @@ namespace microbit {
         else if (slot == 9) { if (h9) h9() }
         else if (slot == 10) { if (h10) h10() }
         else if (slot == 11) { if (h11) h11() }
+        else if (slot == 12) { if (h12) h12(readRadioNumber()) }
     }
 
     function setup() {
@@ -242,7 +341,8 @@ namespace microbit {
         ready = true
         player.execute("gamerule sendcommandfeedback false")
         player.execute("scoreboard objectives add mb dummy")
-        player.execute("tickingarea add 0 250 0 15 253 15 mblink5")
+        player.execute("tickingarea remove mblink5")
+        player.execute("tickingarea add 0 250 0 15 254 15 mblink6")
         note("ready")
         // The bridge puts a gold block at (15, 250, 0) whenever anything happens, so each round needs
         // one check however many "on ..." blocks there are. Code Builder runs one command at a time,
@@ -295,6 +395,16 @@ namespace microbit {
         note("sent " + name + " " + value)
     }
 
+    // Sound and radio settings: TWO commands. The value carries its own counter (so the bridge sees every new one),
+    // then seq tells the bridge to look.
+    function sendCounted(name: string, value: number) {
+        setup()
+        player.execute("scoreboard players set " + name + " mb " + value)
+        player.execute("scoreboard players add seq mb 1")
+        note("sent " + name + " " + value)
+    }
+    let soundCount = 0
+
     // Pictures: ONE command. "pic" = the 25 LED bits + a counter in the bits above (so the bridge sees every new
     // picture). The same picture again is skipped, so "show leds" inside a loop costs nothing after the first time.
     let lastPicture = -1
@@ -328,7 +438,7 @@ namespace microbit {
         // Bridge v0.9.2+ keeps each sensor that has been asked for once ready at y 253
         // (8 bits at x 0-7, z = sensor) with a gold "ready" block at (15, 253, sensor): just read it, no asking.
         // The first reading of a sensor asks the bridge (below), which then keeps that sensor ready.
-        if (k <= 6 && nbits == 8 && blocks.testForBlock(GOLD_BLOCK, world(15, 253, k))) {
+        if ((k <= 6 || k == 9) && nbits == 8 && blocks.testForBlock(GOLD_BLOCK, world(15, 253, k))) {
             let pv = 0
             let pp = 1
             for (let i = 0; i < 8; i++) {
@@ -382,6 +492,18 @@ namespace microbit {
     //% group="Buttons and gestures" weight=105
     export function onLogoPressed(handler: () => void) {
         onSlot(3, handler)
+    }
+
+    /**
+     * True while the micro:bit's gold logo is touched. Use it in "if" and "while".
+     * micro:bit V2 only: on a V1 it is always false.
+     */
+    //% block="micro:bit logo is pressed (V2 only)"
+    //% group="Buttons and gestures" weight=97
+    export function logoIsPressed(): boolean {
+        setup()
+        // The bridge keeps a gold block at (2, 252, 0) while the logo is touched.
+        return blocks.testForBlock(GOLD_BLOCK, world(2, 252, 0))
     }
 
     /**
@@ -610,5 +732,110 @@ namespace microbit {
     export function linkLampToPin(position: Position, pin: MbPin) {
         pinIsInput[pin] = false
         sendLink(pin, position, 1)
+    }
+
+    // ---------- Sound ----------
+
+    /**
+     * Play a tone on the micro:bit, then wait until it has finished.
+     * micro:bit V2: the built-in speaker. micro:bit V1: connect a speaker or headphones to pin 0 and GND.
+     */
+    //% block="play micro:bit tone $hz Hz for $ms ms"
+    //% hz.min=0 hz.max=4000 hz.defl=262 ms.min=0 ms.max=5000 ms.defl=500
+    //% group="Sound" weight=100
+    export function playTone(hz: number, ms: number) {
+        hz = Math.max(0, Math.min(4095, Math.round(hz)))
+        ms = Math.max(0, Math.min(5110, Math.round(ms)))
+        soundCount = soundCount % 31 + 1
+        sendCounted("tone", soundCount * 2097152 + Math.floor(ms / 10) * 4096 + hz)
+        loops.pause(ms)
+    }
+
+    /**
+     * Play a note on the micro:bit, then wait until it has finished (1 beat = half a second).
+     * micro:bit V2: the built-in speaker. micro:bit V1: connect a speaker or headphones to pin 0 and GND.
+     */
+    //% block="play micro:bit note $note for $beat"
+    //% group="Sound" weight=98
+    export function playNote(note: MbNote, beat: MbBeat) {
+        playTone(note, beat)
+    }
+
+    /**
+     * Start one of the micro:bit's tunes. Your code keeps going while it plays.
+     * micro:bit V2: the built-in speaker. micro:bit V1: connect a speaker or headphones to pin 0 and GND.
+     */
+    //% block="play micro:bit melody $melody"
+    //% group="Sound" weight=96
+    export function playMelody(melody: MbMelody) {
+        soundCount = soundCount % 31 + 1
+        sendCounted("mel", soundCount * 64 + melody)
+    }
+
+    /**
+     * Stop any tone or melody that is playing.
+     */
+    //% block="stop micro:bit sound"
+    //% group="Sound" weight=94
+    export function stopSound() {
+        soundCount = soundCount % 31 + 1
+        sendCounted("mel", soundCount * 64)
+    }
+
+    /**
+     * How loud it is around the micro:bit, from 0 (quiet) to 255 (loud).
+     * micro:bit V2 only: the V1 has no microphone and always gives 0.
+     */
+    //% block="micro:bit sound level (V2 only)"
+    //% group="Sound" weight=90
+    export function soundLevel(): number {
+        return readSensor(9)
+    }
+
+    // ---------- Radio ----------
+    let radioCount = 0
+
+    /**
+     * Pick the radio group (0 to 255). micro:bits only hear each other when they use the same group.
+     */
+    //% block="set micro:bit radio group $group"
+    //% group.min=0 group.max=255 group.defl=1
+    //% group="Radio" weight=100
+    export function setRadioGroup(group: number) {
+        group = Math.max(0, Math.min(255, Math.round(group)))
+        radioCount = radioCount % 31 + 1
+        sendCounted("rgrp", radioCount * 256 + group)
+    }
+
+    /**
+     * Send a number by radio to other micro:bits nearby in the same group.
+     */
+    //% block="micro:bit radio send number $n"
+    //% group="Radio" weight=98
+    export function radioSendNumber(n: number) {
+        send("rtx", Math.round(n), "rtxs")
+    }
+
+    /**
+     * Run code when a number arrives by radio from another micro:bit (-32768 to 32767).
+     */
+    //% block="on micro:bit radio received $receivedNumber"
+    //% draggableParameters="reporter"
+    //% group="Radio" weight=96
+    export function onRadioReceivedNumber(handler: (receivedNumber: number) => void) {
+        h12 = handler
+        if (slots.indexOf(12) < 0) slots.push(12)
+        setup()
+    }
+
+    // The bridge writes the number + 32768 as 16 gold/air blocks at x 0-15, y 254, z 0 before raising slot 12.
+    function readRadioNumber(): number {
+        let v = 0
+        let p = 1
+        for (let i = 0; i < 16; i++) {
+            if (blocks.testForBlock(GOLD_BLOCK, world(i, 254, 0))) v += p
+            p *= 2
+        }
+        return v - 32768
     }
 }

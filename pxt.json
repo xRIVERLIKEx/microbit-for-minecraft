@@ -1,6 +1,6 @@
 {
     "name": "micro:bit for Minecraft",
-    "version": "0.7.2",
+    "version": "0.8.0",
     "description": "Code a real BBC micro:bit and the micro:bit in your world from Code Builder. By Cleverlike.",
     "dependencies": {
         "core": "*",
