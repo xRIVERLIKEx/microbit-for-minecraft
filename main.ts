@@ -284,7 +284,7 @@ enum MbMelody {
 }
 
 //% color=#00a4a6 icon="\uf2db" block="micro:bit" weight=200
-//% groups=['Buttons and gestures', 'Sensors', 'Screen', 'Sound', 'Radio', 'Pins and redstone']
+//% groups=['Buttons and gestures', 'Sensors', 'Screen', 'Sound', 'Radio', 'Pins and redstone', 'micro:bit in the world']
 namespace microbit {
     let ICONS: string[] = [
         "0101011111111110111000100", // heart
@@ -331,6 +331,7 @@ namespace microbit {
         "0010001110101010010000100", // arrow up
     ]
     export let debug = false   // set microbit.debug = true to see each step in chat
+    const EXT_VERSION = 1000   // v0.10.0 (major * 10000 + minor * 100 + patch)
     let ready = false
     // event slots: gold block at (slot, 250, 0). 0 A, 1 B, 2 A+B, 3 logo, 4.. gestures, 12 radio number
     // Handlers are kept in plain variables (not a list): Code Builder didn't run handlers stored in a list.
@@ -376,6 +377,8 @@ namespace microbit {
         player.execute("scoreboard objectives add mb dummy")
         player.execute("tickingarea remove mblink5")
         player.execute("tickingarea add 0 250 0 15 254 15 mblink6")
+        // tell the bridge which extension version Code Builder is using (it warns when the copy is old)
+        player.execute("scoreboard players set extv mb " + EXT_VERSION)
         note("ready")
         // The bridge puts a gold block at (15, 250, 0) whenever anything happens, so each round needs
         // one check however many "on ..." blocks there are. Code Builder runs one command at a time,
@@ -929,5 +932,25 @@ namespace microbit {
             p *= 2
         }
         return v - 32768
+    }
+
+    // ---------- micro:bit in the world ----------
+
+    /**
+     * Put a micro:bit in the world 2 blocks in front of you (needs the Cleverlike micro:bit add-on in the world).
+     */
+    //% block="spawn a micro:bit in the world next to me"
+    //% group="micro:bit in the world" weight=100
+    export function spawnWorldMicrobit() {
+        player.execute("summon cleverlike:microbit ^ ^ ^2")
+    }
+
+    /**
+     * Bring the micro:bit in the world to stand 2 blocks in front of you, facing you.
+     */
+    //% block="bring the micro:bit in the world to me"
+    //% group="micro:bit in the world" weight=98
+    export function bringWorldMicrobit() {
+        player.execute("scriptevent cleverlike:mb BRING")
     }
 }

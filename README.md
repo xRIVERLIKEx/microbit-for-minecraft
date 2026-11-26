@@ -2,7 +2,7 @@
 
 Code a real **BBC micro:bit** — and the micro:bit in your Minecraft Education world — from **Code Builder**.
 
-> Test version 0.9.0. Needs micro:bit program v0.9.0, bridge v0.11.1 and add-on v0.6.1. Not an official Minecraft, Mojang, Microsoft or Micro:bit Educational Foundation product.
+> Test version 0.10.0. Needs micro:bit program v0.9.0, bridge v0.12.0 and add-on v0.7.0. Not an official Minecraft, Mojang, Microsoft or Micro:bit Educational Foundation product.
 
 ## What you need
 1. The **micro:bit Link Bridge** running on the computer. It puts the Cleverlike program on the micro:bit (the right one for a V1 or a V2).
@@ -55,6 +55,10 @@ Open **Extensions** and paste this repository's address: `https://github.com/xri
 - **micro:bit in the world gives redstone while button A is pressed / pin P0 is on / tilted left / …**: run it once; the bridge keeps the redstone following the micro:bit, no loop needed.
 - **when redstone lamp at … is lit, turn on micro:bit pin …** turns the pin on while that lamp is lit.
 - (The old **when micro:bit pin … is on, power redstone at …** block is hidden but still works in older programs.)
+
+**micro:bit in the world**
+- **spawn a micro:bit in the world next to me**
+- **bring the micro:bit in the world to me**
 
 Positions can be world positions (`world(10, 64, 10)`) or relative ones (`pos(2, 0, 0)`): a relative position is fixed at the spot it pointed to when the block ran. Run the two *when …* blocks once (for example in *on start*). The bridge keeps them going until Minecraft reconnects. Touch a wire between a pin and 3V to turn an input pin on.
 
