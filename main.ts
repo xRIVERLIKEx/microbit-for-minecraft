@@ -284,7 +284,7 @@ enum MbMelody {
 }
 
 //% color=#00a4a6 icon="\uf2db" block="micro:bit" weight=200
-//% groups=['Buttons and gestures', 'Sensors', 'Screen', 'Sound', 'Radio', 'Pins and redstone', 'micro:bit in the world']
+//% groups=['Buttons and gestures', 'Sensors', 'Data', 'Screen', 'Sound', 'Radio', 'Pins and redstone', 'micro:bit in the world']
 namespace microbit {
     let ICONS: string[] = [
         "0101011111111110111000100", // heart
@@ -331,7 +331,7 @@ namespace microbit {
         "0010001110101010010000100", // arrow up
     ]
     export let debug = false   // set microbit.debug = true to see each step in chat
-    const EXT_VERSION = 1000   // v0.10.0 (major * 10000 + minor * 100 + patch)
+    const EXT_VERSION = 1100   // v0.11.0 (major * 10000 + minor * 100 + patch)
     let ready = false
     // event slots: gold block at (slot, 250, 0). 0 A, 1 B, 2 A+B, 3 logo, 4.. gestures, 12 radio number
     // Handlers are kept in plain variables (not a list): Code Builder didn't run handlers stored in a list.
@@ -932,6 +932,79 @@ namespace microbit {
             p *= 2
         }
         return v - 32768
+    }
+
+    // ---------- Data ----------
+    // The bridge saves what the program logs to a spreadsheet file (CSV) in the Downloads folder.
+    // "rec" = counter * 4 + 1 (start) or + 2 (stop). Each log: lg<slot> = round(value * 100) * 32 + column, then
+    // lgs = how many logs this run (the bridge reads up to 8 it missed). A column's name goes once per run, 4 letters
+    // per score in ln<column>_0..3, ending with a 0.
+    let recordCount = 0
+    let logCount = 0
+    let logNames: string[] = []
+
+    /**
+     * Start a new data file. The bridge saves it in the Downloads folder on this computer.
+     */
+    //% block="start recording data"
+    //% group="Data" weight=100
+    export function startRecording() {
+        recordCount = recordCount % 1000 + 1
+        logCount = 0
+        logNames = []
+        sendCounted("rec", recordCount * 4 + 1)
+    }
+
+    /**
+     * Add a value to the data file, in a column with this name. Values logged together go on the same row.
+     * Logging also starts a recording if none is running.
+     */
+    //% block="log $name = $value"
+    //% name.defl="light"
+    //% value.shadow="microbit_lightLevel"
+    //% group="Data" weight=95
+    export function logData(name: string, value: number) {
+        setup()
+        let col = logNames.indexOf(name)
+        if (col < 0) {
+            if (logNames.length >= 32) return
+            col = logNames.length
+            logNames.push(name)
+            let clean = ""
+            for (let i = 0; i < name.length && clean.length < 16; i++) {
+                const c = name.charCodeAt(i)
+                if (c >= 32 && c <= 126 && c != 44) clean += name.charAt(i)   // no commas: they split columns
+            }
+            if (clean.length == 0) clean = "value"
+            for (let w = 0; w < 4; w++) {
+                let v = 0
+                let p = 1
+                for (let j = 0; j < 4; j++) {
+                    const k = w * 4 + j
+                    if (k < clean.length) v += clean.charCodeAt(k) * p
+                    p *= 128
+                }
+                player.execute("scoreboard players set ln" + col + "_" + w + " mb " + v)
+                if (w * 4 + 4 > clean.length) break   // this word holds the end (a 0)
+            }
+        }
+        let v = Math.round(value * 100)
+        if (v > 6000000) v = 6000000
+        if (v < -6000000) v = -6000000
+        logCount++
+        player.execute("scoreboard players set lg" + (logCount % 8) + " mb " + (v * 32 + col))
+        player.execute("scoreboard players set lgs mb " + logCount)
+        player.execute("scoreboard players add seq mb 1")
+    }
+
+    /**
+     * Finish the data file. The bridge tells you where it was saved.
+     */
+    //% block="stop recording data"
+    //% group="Data" weight=90
+    export function stopRecording() {
+        recordCount = recordCount % 1000 + 1
+        sendCounted("rec", recordCount * 4 + 2)
     }
 
     // ---------- micro:bit in the world ----------

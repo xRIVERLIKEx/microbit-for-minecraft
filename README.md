@@ -30,6 +30,11 @@ Open **Extensions** and paste this repository's address: `https://github.com/xri
 - **micro:bit acceleration (mg) x / y / z** (steps of 16)
 - **micro:bit rotation (°) pitch / roll** (steps of 2)
 
+**Data** (needs bridge v0.14.0 or newer)
+- **start recording data**: starts a new spreadsheet file (CSV) in the Downloads folder on the computer running the bridge.
+- **log *name* = *value***: adds a value in a column with that name (up to 16 letters, 32 columns). Values logged one after another go on the same row, with the time. Logging starts a recording if none is running.
+- **stop recording data**: finishes the file. Minecraft chat and the bridge say where it was saved; the file opens in Excel or Google Sheets.
+
 **Screen**
 - **show leds on micro:bit** (click the 5×5 grid to draw)
 - **show icon … on micro:bit** (the micro:bit's 40 icons)
@@ -91,6 +96,18 @@ loops.forever(function () {
 })
 ```
 
+Record the light level and temperature every second for a minute:
+
+```ts
+microbit.startRecording()
+for (let i = 0; i < 60; i++) {
+    microbit.logData("light", microbit.lightLevel())
+    microbit.logData("temperature", microbit.temperature())
+    loops.pause(1000)
+}
+microbit.stopRecording()
+```
+
 Light a redstone lamp from the micro:bit:
 
 ```ts
@@ -105,6 +122,7 @@ To see each step in chat while testing: `microbit.debug = true`
 - Sensors: the first reading of a sensor asks the bridge (answer at y 251). After that the bridge keeps that sensor ready as 8 gold/air blocks at x 0–7, y 253 (z = sensor) with a gold block at x 15, so later readings are quick. Sensors nobody reads cost nothing.
 - Text, pins and redstone links go through the same `mb` scoreboard. Pin states are kept at y 252, z 2.
 - Sound and radio settings are two commands each (`tone`, `mel`, `rgrp` carry their own counter, then `seq`). A radio number arrives as 16 gold/air blocks at x 0–15, y 254, z 0 (number + 32768) and event slot 12.
+- Data: `rec` (start / stop, with a counter); each log writes `lg0`–`lg7` (value × 100 × 32 + column) and `lgs` (logs so far), so the bridge catches up to 8 logs it missed between reads. Column names go once per run in `ln<column>_0`–`_3`.
 - A ticking area `mblink6` keeps those spots loaded. "is pressed" and "is …" read state blocks the bridge keeps up to date at y 252 (one check each). Pictures are one command, and the same picture twice is skipped.
 
 Icon pictures come from [pxt-microbit](https://github.com/microsoft/pxt-microbit) (MIT, Microsoft).
