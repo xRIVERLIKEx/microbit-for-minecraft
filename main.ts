@@ -935,7 +935,8 @@ namespace microbit {
     }
 
     // ---------- Data ----------
-    // The bridge saves what the program logs to a spreadsheet file (CSV) in the Downloads folder.
+    // The bridge keeps what the program logs (the last 5 recordings, in memory); the student saves a recording
+    // from the micro:bit Link window as a spreadsheet file (CSV).
     // "rec" = counter * 4 + 1 (start) or + 2 (stop). Each log: lg<slot> = round(value * 100) * 32 + column, then
     // lgs = how many logs this run (the bridge reads up to 8 it missed). A column's name goes once per run, 4 letters
     // per score in ln<column>_0..3, ending with a 0.
@@ -944,7 +945,7 @@ namespace microbit {
     let logNames: string[] = []
 
     /**
-     * Start a new data file. The bridge saves it in the Downloads folder on this computer.
+     * Start a new recording. Save it from the micro:bit Link window as a spreadsheet file.
      */
     //% block="start recording data"
     //% group="Data" weight=100
@@ -956,7 +957,7 @@ namespace microbit {
     }
 
     /**
-     * Add a value to the data file, in a column with this name. Values logged together go on the same row.
+     * Add a value to the recording, in a column with this name. Values logged together go on the same row.
      * Logging also starts a recording if none is running.
      */
     //% block="log $name = $value"
@@ -998,7 +999,7 @@ namespace microbit {
     }
 
     /**
-     * Finish the data file. The bridge tells you where it was saved.
+     * Finish the recording. Save it from the micro:bit Link window.
      */
     //% block="stop recording data"
     //% group="Data" weight=90

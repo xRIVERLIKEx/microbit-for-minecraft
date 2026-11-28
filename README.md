@@ -30,10 +30,10 @@ Open **Extensions** and paste this repository's address: `https://github.com/xri
 - **micro:bit acceleration (mg) x / y / z** (steps of 16)
 - **micro:bit rotation (°) pitch / roll** (steps of 2)
 
-**Data** (needs bridge v0.14.0 or newer)
-- **start recording data**: starts a new spreadsheet file (CSV) in the Downloads folder on the computer running the bridge.
+**Data** (needs bridge v0.15.0 or newer)
+- **start recording data**: starts a new recording. Nothing is saved on the computer until you choose to: the micro:bit Link window keeps the last 5 recordings, each with **Save…** (pick where the spreadsheet file goes) and **Delete**.
 - **log *name* = *value***: adds a value in a column with that name (up to 16 letters, 32 columns). Values logged one after another go on the same row, with the time. Logging starts a recording if none is running.
-- **stop recording data**: finishes the file. Minecraft chat and the bridge say where it was saved; the file opens in Excel or Google Sheets.
+- **stop recording data**: finishes the recording. Save it from the micro:bit Link window as a CSV file, which opens in Excel or Google Sheets. Unsaved recordings are deleted when the bridge closes.
 
 **Screen**
 - **show leds on micro:bit** (click the 5×5 grid to draw)
