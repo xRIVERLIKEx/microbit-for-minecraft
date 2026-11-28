@@ -10,7 +10,7 @@ Then come back here. You'll put a micro:bit in the world and make it say "Hello!
 
 ## Spawn a micro:bit
 
-Open the ``||microbit:micro:bit||`` category and drag ``||microbit:spawn a micro:bit in the world next to me||`` into ``||loops:on start||``.
+Open the ``||microbit:micro:bit||`` category and drag ``||microbit:spawn a micro:bit in the world in front of me||`` into ``||loops:on start||``.
 
 ```blocks
 microbit.spawnWorldMicrobit()

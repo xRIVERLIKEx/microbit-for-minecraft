@@ -65,7 +65,7 @@ Open **Extensions** and paste this repository's address: `https://github.com/xri
 - (The old **when micro:bit pin … is on, power redstone at …** block is hidden but still works in older programs.)
 
 **micro:bit in the world**
-- **spawn a micro:bit in the world next to me**
+- **spawn a micro:bit in the world in front of me**
 - **bring the micro:bit in the world to me**
 
 Positions can be world positions (`world(10, 64, 10)`) or relative ones (`pos(2, 0, 0)`): a relative position is fixed at the spot it pointed to when the block ran. Run the two *when …* blocks once (for example in *on start*). The bridge keeps them going until Minecraft reconnects. Touch a wire between a pin and 3V to turn an input pin on.
