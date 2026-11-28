@@ -30,6 +30,8 @@ Open **Extensions** and paste this repository's address: `https://github.com/xri
 - **micro:bit acceleration (mg) x / y / z** (steps of 16)
 - **micro:bit rotation (°) pitch / roll** (steps of 2)
 
+**Getting started tutorial:** open https://minecraft.makecode.com/#tutorial:github:xRIVERLIKEx/microbit-for-minecraft/start (the Micro:bit Playground world opens it when you press C). It adds this extension and walks through spawning a micro:bit and showing "Hello!".
+
 **Data** (needs bridge v0.16.0 or newer)
 - **start recording data**: starts a new recording. Nothing is saved on the computer until you choose to: the micro:bit Link window keeps the last 5 recordings, each with **Save…** (pick where the spreadsheet file goes) and **Delete**.
 - **record micro:bit light level / temperature / acceleration / pitch / roll / sound level every … seconds**: the micro:bit Link window reads the micro:bit itself at exactly that pace (0, 1, 2, 3… seconds), until **stop recording data**. Run it once for each sensor you want.
