@@ -350,7 +350,7 @@ namespace microbit {
         "0010001110101010010000100", // arrow up
     ]
     export let debug = false   // set microbit.debug = true to see each step in chat
-    const EXT_VERSION = 1100   // v0.11.0 (major * 10000 + minor * 100 + patch)
+    const EXT_VERSION = 1101   // v0.11.1 (major * 10000 + minor * 100 + patch)
     let ready = false
     // event slots: gold block at (slot, 250, 0). 0 A, 1 B, 2 A+B, 3 logo, 4.. gestures, 12 radio number
     // Handlers are kept in plain variables (not a list): Code Builder didn't run handlers stored in a list.
