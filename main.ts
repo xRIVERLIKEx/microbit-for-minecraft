@@ -283,6 +283,25 @@ enum MbMelody {
     PowerDown = 20,
 }
 
+enum MbSensor {
+    //% block="light level"
+    Light = 0,
+    //% block="temperature (°C)"
+    Temperature = 1,
+    //% block="acceleration x (mg)"
+    AccelX = 2,
+    //% block="acceleration y (mg)"
+    AccelY = 3,
+    //% block="acceleration z (mg)"
+    AccelZ = 4,
+    //% block="pitch (°)"
+    Pitch = 5,
+    //% block="roll (°)"
+    Roll = 6,
+    //% block="sound level (V2 only)"
+    Sound = 9
+}
+
 //% color=#00a4a6 icon="\uf2db" block="micro:bit" weight=200
 //% groups=['Buttons and gestures', 'Sensors', 'Data', 'Screen', 'Sound', 'Radio', 'Pins and redstone', 'micro:bit in the world']
 namespace microbit {
@@ -935,14 +954,21 @@ namespace microbit {
     }
 
     // ---------- Data ----------
-    // The bridge keeps what the program logs (the last 5 recordings, in memory); the student saves a recording
+    // The bridge keeps what the program records (the last 5 recordings, in memory); the student saves a recording
     // from the micro:bit Link window as a spreadsheet file (CSV).
-    // "rec" = counter * 4 + 1 (start) or + 2 (stop). Each log: lg<slot> = round(value * 100) * 32 + column, then
-    // lgs = how many logs this run (the bridge reads up to 8 it missed). A column's name goes once per run, 4 letters
-    // per score in ln<column>_0..3, ending with a 0.
+    // "rec" = counter * 4 + 1 (start) or + 2 (stop).
+    // A "log" block is one row: lg<row % 8 * 3 + i> = round(value * 100) * 32 + column for its 1-3 values, then
+    // lr<row % 8> = Minecraft game time (ticks) * 4 + how many values, then lgs = run * 2^20 + rows so far this run.
+    // A column's name goes once per run, 4 letters per score in ln<column>_0..3, ending with a 0.
+    // "record ... every ... seconds": rs<n % 4> = tenths of a second * 16 + sensor, then rss = run * 2^20 + n; the bridge
+    // then reads the micro:bit itself at exactly that pace (Code Builder isn't fast or steady enough for it).
+    // lgs and rss start with a random number for this run (run * 2^20), so a rerun that logs exactly as much as the
+    // last run is still seen as new.
     let recordCount = 0
-    let logCount = 0
+    let rowCount = 0
     let logNames: string[] = []
+    let sampleCount = 0
+    const runId = Math.randomRange(1, 2000)
 
     /**
      * Start a new recording. Save it from the micro:bit Link window as a spreadsheet file.
@@ -951,55 +977,89 @@ namespace microbit {
     //% group="Data" weight=100
     export function startRecording() {
         recordCount = recordCount % 1000 + 1
-        logCount = 0
+        rowCount = 0
         logNames = []
         sendCounted("rec", recordCount * 4 + 1)
     }
 
     /**
-     * Add a value to the recording, in a column with this name. Values logged together go on the same row.
-     * Logging also starts a recording if none is running.
+     * Record a micro:bit sensor at a steady pace (for example every 1 second) until "stop recording data".
+     * The micro:bit Link window takes the readings itself, so the times are exact. Starts a recording if none is running.
      */
-    //% block="log $name = $value"
-    //% name.defl="light"
-    //% value.shadow="microbit_lightLevel"
-    //% group="Data" weight=95
-    export function logData(name: string, value: number) {
+    //% block="record micro:bit $sensor every $seconds seconds"
+    //% seconds.defl=1 seconds.min=0.2 seconds.max=60
+    //% group="Data" weight=97
+    export function recordEvery(sensor: MbSensor, seconds: number) {
+        let tenths = Math.round(seconds * 10)
+        if (tenths < 2) tenths = 2
+        if (tenths > 600) tenths = 600
         setup()
+        sampleCount++
+        player.execute("scoreboard players set rs" + (sampleCount % 4) + " mb " + (tenths * 16 + sensor))
+        player.execute("scoreboard players set rss mb " + (runId * 1048576 + sampleCount))
+        player.execute("scoreboard players add seq mb 1")
+    }
+
+    function logColumn(name: string): number {
         let col = logNames.indexOf(name)
-        if (col < 0) {
-            if (logNames.length >= 32) return
-            col = logNames.length
-            logNames.push(name)
-            let clean = ""
-            for (let i = 0; i < name.length && clean.length < 16; i++) {
-                const c = name.charCodeAt(i)
-                if (c >= 32 && c <= 126 && c != 44) clean += name.charAt(i)   // no commas: they split columns
-            }
-            if (clean.length == 0) clean = "value"
-            for (let w = 0; w < 4; w++) {
-                let v = 0
-                let p = 1
-                for (let j = 0; j < 4; j++) {
-                    const k = w * 4 + j
-                    if (k < clean.length) v += clean.charCodeAt(k) * p
-                    p *= 128
-                }
-                player.execute("scoreboard players set ln" + col + "_" + w + " mb " + v)
-                if (w * 4 + 4 > clean.length) break   // this word holds the end (a 0)
-            }
+        if (col >= 0) return col
+        if (logNames.length >= 32) return -1
+        col = logNames.length
+        logNames.push(name)
+        let clean = ""
+        for (let i = 0; i < name.length && clean.length < 16; i++) {
+            const c = name.charCodeAt(i)
+            if (c >= 32 && c <= 126 && c != 44) clean += name.charAt(i)   // no commas: they split columns
         }
-        let v = Math.round(value * 100)
-        if (v > 6000000) v = 6000000
-        if (v < -6000000) v = -6000000
-        logCount++
-        player.execute("scoreboard players set lg" + (logCount % 8) + " mb " + (v * 32 + col))
-        player.execute("scoreboard players set lgs mb " + logCount)
+        if (clean.length == 0) clean = "value"
+        for (let w = 0; w < 4; w++) {
+            let v = 0
+            let p = 1
+            for (let j = 0; j < 4; j++) {
+                const k = w * 4 + j
+                if (k < clean.length) v += clean.charCodeAt(k) * p
+                p *= 128
+            }
+            player.execute("scoreboard players set ln" + col + "_" + w + " mb " + v)
+            if (w * 4 + 4 > clean.length) break   // this word holds the end (a 0)
+        }
+        return col
+    }
+
+    /**
+     * Add one row to the recording: up to 3 values, each in a column with its name (click + for more).
+     * Logging starts a recording if none is running.
+     */
+    //% block="log $name1 = $value1||$name2 = $value2|$name3 = $value3"
+    //% name1.defl="light" value1.shadow="microbit_lightLevel"
+    //% name2.defl="temperature" value2.shadow="microbit_temperature"
+    //% name3.defl="value"
+    //% expandableArgumentMode="enabled" inlineInputMode=inline
+    //% group="Data" weight=95
+    export function logData(name1: string, value1: number, name2?: string, value2?: number, name3?: string, value3?: number) {
+        setup()
+        rowCount++
+        const names = [name1, name2, name3]
+        const values = [value1, value2, value3]
+        let n = 0
+        for (let i = 0; i < 3; i++) {
+            if (i > 0 && (names[i] === undefined || names[i] === null)) break
+            const col = logColumn(names[i])
+            if (col < 0) continue
+            let v = values[i] === undefined || values[i] === null ? 0 : Math.round(values[i] * 100)
+            if (v > 6000000) v = 6000000
+            if (v < -6000000) v = -6000000
+            player.execute("scoreboard players set lg" + ((rowCount % 8) * 3 + n) + " mb " + (v * 32 + col))
+            n++
+        }
+        const ticks = gameplay.timeQuery(GAME_TIME)
+        player.execute("scoreboard players set lr" + (rowCount % 8) + " mb " + ((ticks % 500000000) * 4 + n))
+        player.execute("scoreboard players set lgs mb " + (runId * 1048576 + rowCount))
         player.execute("scoreboard players add seq mb 1")
     }
 
     /**
-     * Finish the recording. Save it from the micro:bit Link window.
+     * Finish the recording (and any "record … every …"). Save it from the micro:bit Link window.
      */
     //% block="stop recording data"
     //% group="Data" weight=90

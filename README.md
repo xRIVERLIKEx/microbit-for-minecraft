@@ -30,10 +30,11 @@ Open **Extensions** and paste this repository's address: `https://github.com/xri
 - **micro:bit acceleration (mg) x / y / z** (steps of 16)
 - **micro:bit rotation (°) pitch / roll** (steps of 2)
 
-**Data** (needs bridge v0.15.0 or newer)
+**Data** (needs bridge v0.16.0 or newer)
 - **start recording data**: starts a new recording. Nothing is saved on the computer until you choose to: the micro:bit Link window keeps the last 5 recordings, each with **Save…** (pick where the spreadsheet file goes) and **Delete**.
-- **log *name* = *value***: adds a value in a column with that name (up to 16 letters, 32 columns). Values logged one after another go on the same row, with the time. Logging starts a recording if none is running.
-- **stop recording data**: finishes the recording. Save it from the micro:bit Link window as a CSV file, which opens in Excel or Google Sheets. Unsaved recordings are deleted when the bridge closes.
+- **record micro:bit light level / temperature / acceleration / pitch / roll / sound level every … seconds**: the micro:bit Link window reads the micro:bit itself at exactly that pace (0, 1, 2, 3… seconds), until **stop recording data**. Run it once for each sensor you want.
+- **log *name* = *value*** (click **+** for a 2nd and 3rd value): adds one row with up to 3 values, each in a column with its name (up to 16 letters, 32 columns). Use it for values your program works out, like a count. The time is when the block ran. Code Builder runs blocks one at a time, so a loop with *pause 1000 ms* logs about every 1.3–1.5 seconds.
+- **stop recording data**: finishes the recording (and any *record … every …*). Save it from the micro:bit Link window as a CSV file, which opens in Excel or Google Sheets. Unsaved recordings are deleted when the bridge closes.
 
 **Screen**
 - **show leds on micro:bit** (click the 5×5 grid to draw)
@@ -99,13 +100,20 @@ loops.forever(function () {
 Record the light level and temperature every second for a minute:
 
 ```ts
-microbit.startRecording()
-for (let i = 0; i < 60; i++) {
-    microbit.logData("light", microbit.lightLevel())
-    microbit.logData("temperature", microbit.temperature())
-    loops.pause(1000)
-}
+microbit.recordEvery(MbSensor.Light, 1)
+microbit.recordEvery(MbSensor.Temperature, 1)
+loops.pause(60000)
 microbit.stopRecording()
+```
+
+Log how many times button A was pressed, with the light level, each time it's pressed:
+
+```ts
+let presses = 0
+microbit.onButtonPressed(MbButton.A, function () {
+    presses += 1
+    microbit.logData("presses", presses, "light", microbit.lightLevel())
+})
 ```
 
 Light a redstone lamp from the micro:bit:
@@ -122,7 +130,7 @@ To see each step in chat while testing: `microbit.debug = true`
 - Sensors: the first reading of a sensor asks the bridge (answer at y 251). After that the bridge keeps that sensor ready as 8 gold/air blocks at x 0–7, y 253 (z = sensor) with a gold block at x 15, so later readings are quick. Sensors nobody reads cost nothing.
 - Text, pins and redstone links go through the same `mb` scoreboard. Pin states are kept at y 252, z 2.
 - Sound and radio settings are two commands each (`tone`, `mel`, `rgrp` carry their own counter, then `seq`). A radio number arrives as 16 gold/air blocks at x 0–15, y 254, z 0 (number + 32768) and event slot 12.
-- Data: `rec` (start / stop, with a counter); each log writes `lg0`–`lg7` (value × 100 × 32 + column) and `lgs` (logs so far), so the bridge catches up to 8 logs it missed between reads. Column names go once per run in `ln<column>_0`–`_3`.
+- Data: `rec` (start / stop, with a counter); `rs0`–`rs3` + `rss` (sensor and pace for *record … every …*; the bridge window does the reading). Each *log* block is one row: `lg<row % 8 × 3 + i>` (value × 100 × 32 + column), `lr<row % 8>` (Minecraft game time × 4 + how many values) and `lgs` (a random number for this run × 2^20 + rows so far), so the bridge catches up to 8 rows it missed. Column names go once per run in `ln<column>_0`–`_3`.
 - A ticking area `mblink6` keeps those spots loaded. "is pressed" and "is …" read state blocks the bridge keeps up to date at y 252 (one check each). Pictures are one command, and the same picture twice is skipped.
 
 Icon pictures come from [pxt-microbit](https://github.com/microsoft/pxt-microbit) (MIT, Microsoft).
